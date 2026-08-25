@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+ 
+{#
+  One route for both roles. Which block is shown is decided by the current
+  user's role at render time, not by the URL, so flipping the switcher can
+  never leave the page and the identity out of sync.
+#}
+ 
+{% block content %}
+<section class="page">
+  <div class="page-head">
+    <h1 id="page-title">Appointments</h1>
+    <button id="request-btn" class="btn btn-primary" hidden>Request an appointment</button>
+  </div>
+ 
+  <p id="scope-note" class="scope-note"></p>
+ 
+  <div id="list" class="list" aria-busy="true">
+    <p class="muted">Loading…</p>
+  </div>
+</section>
+ 
+<!-- Request form. A dialog rather than its own route: the patient is
+     looking at their list and adding to it. -->
+<dialog id="request-dialog" class="dialog">
+  <h2>Request an appointment</h2>
+  <p class="dialog-note">Requests start as pending until a provider confirms them.</p>
+ 
+  <label for="f-provider">Provider</label>
+  <select id="f-provider" required></select>
+ 
+  <label for="f-type">Appointment type</label>
+  <select id="f-type" required>
+    <option value="consultation">Consultation (30 min)</option>
+    <option value="follow_up">Follow-up (15 min)</option>
+    <option value="annual_physical">Annual physical (45 min)</option>
+    <option value="lab_review">Lab review (20 min)</option>
+  </select>
+ 
+  <label for="f-when">Preferred date and time</label>
+  <input id="f-when" type="datetime-local" required>
+ 
+  <label for="f-reason">Reason for visit</label>
+  <textarea id="f-reason" rows="3" placeholder="What would you like to discuss?"></textarea>
+ 
+  <p id="request-error" class="error" hidden></p>
+ 
+  <div class="dialog-actions">
+    <button id="request-cancel" class="btn btn-quiet">Close</button>
+    <button id="request-submit" class="btn btn-primary">Send request</button>
+  </div>
+</dialog>
+{% endblock %}

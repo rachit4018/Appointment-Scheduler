@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+ 
+{#
+  Shared by both roles. Which actions appear is decided by role and status;
+  the backend enforces the same rules independently, so hiding a button is a
+  convenience, never the rule.
+#}
+ 
+{% block content %}
+<section class="page page-narrow" data-appointment-id="{{ appointment_id }}">
+  <a class="back" href="/">&larr; All appointments</a>
+ 
+  <div id="detail" aria-busy="true">
+    <p class="muted">Loading…</p>
+  </div>
+</section>
+ 
+<!-- Reschedule form. A dialog rather than a route: it is one field on one
+     appointment. -->
+<dialog id="reschedule-dialog" class="dialog">
+  <h2>Reschedule</h2>
+  <p class="dialog-note">
+    Moving an appointment changes the time only. A pending appointment stays
+    pending until you confirm it.
+  </p>
+ 
+  <label for="r-when">New date and time</label>
+  <input id="r-when" type="datetime-local" required>
+ 
+  <p id="reschedule-error" class="error" hidden></p>
+ 
+  <div class="dialog-actions">
+    <button id="reschedule-cancel" class="btn btn-quiet">Close</button>
+    <button id="reschedule-submit" class="btn btn-primary">Move appointment</button>
+  </div>
+</dialog>
+{% endblock %}

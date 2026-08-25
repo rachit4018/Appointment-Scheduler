@@ -1,0 +1,32 @@
+{# Shared shell. The switcher lives here so it is present on every screen. #}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Patient Portal{% endblock %}</title>
+  <link rel="stylesheet" href="/static/app.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/">
+      <span class="brand-mark" aria-hidden="true"></span>
+      Patient Portal
+    </a>
+ 
+    <div class="switcher">
+      <label for="user-select">Viewing as</label>
+      <select id="user-select" aria-label="Switch user"></select>
+    </div>
+  </header>
+ 
+  <main id="main">
+    {% block content %}{% endblock %}
+  </main>
+ 
+  <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+ 
+  <script src="/static/app.js"></script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>
