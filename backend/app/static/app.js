@@ -174,16 +174,36 @@ async function renderList() {
 }
  
 /* --------------------------------------------------------- request form */
- 
+
+// Bookable hours: 9:00 AM to 5:00 PM, in 15-minute slots.
+function timeSlotOptions() {
+  const opts = [];
+  for (let minutes = 9 * 60; minutes < 17 * 60; minutes += 15) {
+    const h24 = Math.floor(minutes / 60);
+    const m = minutes % 60;
+    const value = `${String(h24).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+    const label = new Date(2000, 0, 1, h24, m).toLocaleTimeString([], {
+      hour: "numeric",
+      minute: "2-digit",
+    });
+    opts.push(`<option value="${value}">${label}</option>`);
+  }
+  return opts.join("");
+}
+
 async function initRequestForm() {
   const dialog = document.getElementById("request-dialog");
   if (!dialog) return;
- 
+
   const providers = await api.get("/api/providers");
   document.getElementById("f-provider").innerHTML = providers
     .map((p) => `<option value="${p.id}">${esc(p.name)}</option>`)
     .join("");
- 
+
+  document.getElementById("f-time").innerHTML = timeSlotOptions();
+  // Can't request a slot before today.
+  document.getElementById("f-date").min = new Date().toISOString().slice(0, 10);
+
   document.getElementById("request-btn").addEventListener("click", () => {
     document.getElementById("request-error").hidden = true;
     dialog.showModal();
@@ -192,22 +212,23 @@ async function initRequestForm() {
     dialog.close());
  
   document.getElementById("request-submit").addEventListener("click", async () => {
-    const when = document.getElementById("f-when").value;
+    const date = document.getElementById("f-date").value;
+    const time = document.getElementById("f-time").value;
     const errEl = document.getElementById("request-error");
- 
-    if (!when) {
+
+    if (!date || !time) {
       errEl.textContent = "Pick a date and time.";
       errEl.hidden = false;
       return;
     }
- 
+
     try {
       await api.post("/api/appointments", {
         provider_id: Number(document.getElementById("f-provider").value),
         appointment_type: document.getElementById("f-type").value,
-        // The local value is converted to a UTC instant here. The server
-        // derives the end time from the appointment type.
-        starts_at: new Date(when).toISOString(),
+        // The local date + slot are combined and converted to a UTC
+        // instant here. The server derives the end time from the type.
+        starts_at: new Date(`${date}T${time}`).toISOString(),
         reason: document.getElementById("f-reason").value || null,
       });
       dialog.close();
