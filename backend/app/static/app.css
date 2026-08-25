@@ -1,0 +1,515 @@
+/* Patient Portal
+   ---------------------------------------------------------------
+   Direction: a clinical record, not a consumer booking app. Times are
+   the primary scannable content, so every date and time is set in
+   tabular figures and they align down the page in a column. The one
+   deliberate flourish is the history timeline on the detail view,
+   which is what this app is actually about.
+   --------------------------------------------------------------- */
+ 
+:root {
+  --paper:      #f7f8fa;
+  --surface:    #ffffff;
+  --ink:        #16212e;
+  --ink-soft:   #5a6675;
+  --rule:       #dde3ea;
+  --clinical:   #1b6b72;
+  --clinical-d: #14545a;
+ 
+  --pending:    #a8650f;
+  --pending-bg: #fdf3e4;
+  --confirmed:  #1b6b72;
+  --confirmed-bg:#e5f2f2;
+  --cancelled:  #6f7b89;
+  --cancelled-bg:#eef1f4;
+  --danger:     #a03030;
+ 
+  --radius: 6px;
+  --gap: 1rem;
+ 
+  --sans: ui-sans-serif, -apple-system, "Segoe UI", Roboto, "Helvetica Neue",
+          Arial, sans-serif;
+  --mono: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas, monospace;
+}
+ 
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper: #101720;
+    --surface: #17202b;
+    --ink: #e6ebf1;
+    --ink-soft: #9aa7b6;
+    --rule: #26313f;
+    --clinical: #4fb3ba;
+    --clinical-d: #6fc7cd;
+    --pending: #e0a458;
+    --pending-bg: #2a2116;
+    --confirmed: #4fb3ba;
+    --confirmed-bg: #14282b;
+    --cancelled: #8b97a5;
+    --cancelled-bg: #1d2530;
+    --danger: #e08585;
+  }
+}
+ 
+* { box-sizing: border-box; }
+ 
+html { -webkit-text-size-adjust: 100%; }
+ 
+body {
+  margin: 0;
+  font-family: var(--sans);
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--ink);
+  background: var(--paper);
+}
+ 
+/* Times, dates and ids. The whole point of the app is comparing them. */
+time, .num { font-variant-numeric: tabular-nums; }
+ 
+/* ---------------------------------------------------------------- header */
+ 
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--gap);
+  flex-wrap: wrap;
+  padding: 0.85rem 1.5rem;
+  background: var(--surface);
+  border-bottom: 1px solid var(--rule);
+}
+ 
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  color: var(--ink);
+  text-decoration: none;
+}
+ 
+.brand-mark {
+  width: 10px;
+  height: 18px;
+  border-left: 3px solid var(--clinical);
+  border-right: 3px solid var(--rule);
+}
+ 
+.switcher {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.82rem;
+  color: var(--ink-soft);
+}
+ 
+.switcher select {
+  font: inherit;
+  font-size: 0.88rem;
+  color: var(--ink);
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  padding: 0.35rem 0.55rem;
+  max-width: 15rem;
+}
+ 
+/* ------------------------------------------------------------------ page */
+ 
+.page {
+  max-width: 62rem;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 4rem;
+}
+ 
+.page-narrow { max-width: 44rem; }
+ 
+.page-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--gap);
+  flex-wrap: wrap;
+}
+ 
+.page-head h1 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 640;
+  letter-spacing: -0.022em;
+}
+ 
+.scope-note {
+  margin: 0.35rem 0 1.5rem;
+  color: var(--ink-soft);
+  font-size: 0.88rem;
+}
+ 
+.muted { color: var(--ink-soft); }
+ 
+.back {
+  display: inline-block;
+  margin-bottom: 1.25rem;
+  font-size: 0.86rem;
+  color: var(--ink-soft);
+  text-decoration: none;
+}
+ 
+.back:hover { color: var(--clinical); }
+ 
+/* ------------------------------------------------------------------ list */
+ 
+.list {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  background: var(--surface);
+  overflow: hidden;
+}
+ 
+.row {
+  display: grid;
+  grid-template-columns: 11.5rem 1fr auto;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.95rem 1.15rem;
+  border-bottom: 1px solid var(--rule);
+  color: inherit;
+  text-decoration: none;
+}
+ 
+.row:last-child { border-bottom: 0; }
+.row:hover { background: var(--paper); }
+ 
+.row-when {
+  font-weight: 560;
+  letter-spacing: -0.01em;
+}
+ 
+.row-when small {
+  display: block;
+  font-weight: 400;
+  font-size: 0.78rem;
+  color: var(--ink-soft);
+}
+ 
+.row-who { min-width: 0; }
+ 
+.row-who strong {
+  font-weight: 560;
+  display: block;
+}
+ 
+.row-who span {
+  display: block;
+  font-size: 0.83rem;
+  color: var(--ink-soft);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+ 
+/* Cancelled rows stay visible rather than vanishing, so cancelling does
+   not read as deletion. */
+.row.is-cancelled .row-when,
+.row.is-cancelled .row-who strong { text-decoration: line-through; }
+.row.is-cancelled { opacity: 0.72; }
+ 
+.empty {
+  padding: 2.5rem 1.25rem;
+  text-align: center;
+  color: var(--ink-soft);
+}
+ 
+/* ------------------------------------------------------------------ pill */
+ 
+.pill {
+  display: inline-block;
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.74rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+ 
+.pill-pending   { color: var(--pending);   background: var(--pending-bg); }
+.pill-confirmed { color: var(--confirmed); background: var(--confirmed-bg); }
+.pill-cancelled { color: var(--cancelled); background: var(--cancelled-bg); }
+ 
+/* ---------------------------------------------------------------- detail */
+ 
+.card {
+  padding: 1.5rem;
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+}
+ 
+.detail-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--gap);
+}
+ 
+.detail-when {
+  margin: 0;
+  font-size: 1.35rem;
+  font-weight: 620;
+  letter-spacing: -0.02em;
+}
+ 
+.detail-when small {
+  display: block;
+  margin-top: 0.2rem;
+  font-size: 0.85rem;
+  font-weight: 400;
+  color: var(--ink-soft);
+}
+ 
+.facts {
+  margin: 1.5rem 0 0;
+  display: grid;
+  grid-template-columns: 8rem 1fr;
+  gap: 0.6rem 1rem;
+  font-size: 0.9rem;
+}
+ 
+.facts dt { color: var(--ink-soft); }
+.facts dd { margin: 0; }
+ 
+.actions {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  margin-top: 1.75rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--rule);
+}
+ 
+.no-actions {
+  margin-top: 1.75rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--rule);
+  font-size: 0.86rem;
+  color: var(--ink-soft);
+}
+ 
+/* --------------------------------------------------------------- history
+   The signature element. A hairline runs down the left with timestamps
+   hanging in the margin, so the record reads as a chart note rather than
+   a table. */
+ 
+.history {
+  margin-top: 2.25rem;
+}
+ 
+.history h2 {
+  margin: 0 0 0.35rem;
+  font-size: 0.78rem;
+  font-weight: 640;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+ 
+.history-note {
+  margin: 0 0 1.1rem;
+  font-size: 0.84rem;
+  color: var(--ink-soft);
+}
+ 
+.trail {
+  margin: 0;
+  padding: 0 0 0 1.25rem;
+  list-style: none;
+  border-left: 1px solid var(--rule);
+}
+ 
+.trail li {
+  position: relative;
+  padding: 0 0 1.15rem;
+}
+ 
+.trail li::before {
+  content: "";
+  position: absolute;
+  left: -1.53rem;
+  top: 0.5rem;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--rule);
+}
+ 
+.trail li.is-latest::before { background: var(--clinical); }
+.trail li:last-child { padding-bottom: 0; }
+ 
+.trail-when {
+  display: block;
+  font-size: 0.76rem;
+  color: var(--ink-soft);
+}
+ 
+.trail-what { font-size: 0.9rem; }
+ 
+.trail-what b { font-weight: 600; }
+ 
+.trail-what .from {
+  color: var(--ink-soft);
+  text-decoration: line-through;
+}
+ 
+/* --------------------------------------------------------------- buttons */
+ 
+.btn {
+  font: inherit;
+  font-size: 0.88rem;
+  font-weight: 550;
+  padding: 0.45rem 0.95rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--rule);
+  background: var(--surface);
+  color: var(--ink);
+  cursor: pointer;
+}
+ 
+.btn:hover { border-color: var(--ink-soft); }
+ 
+.btn:focus-visible {
+  outline: 2px solid var(--clinical);
+  outline-offset: 2px;
+}
+ 
+.btn[disabled] { opacity: 0.5; cursor: not-allowed; }
+ 
+.btn-primary {
+  background: var(--clinical);
+  border-color: var(--clinical);
+  color: #fff;
+}
+ 
+.btn-primary:hover {
+  background: var(--clinical-d);
+  border-color: var(--clinical-d);
+}
+ 
+.btn-danger { color: var(--danger); border-color: var(--rule); }
+.btn-danger:hover { border-color: var(--danger); }
+ 
+.btn-quiet { color: var(--ink-soft); }
+ 
+/* --------------------------------------------------------------- dialogs */
+ 
+.dialog {
+  width: min(30rem, calc(100vw - 2rem));
+  padding: 1.5rem;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--ink);
+}
+ 
+.dialog::backdrop { background: rgb(10 18 28 / 0.45); }
+ 
+.dialog h2 {
+  margin: 0 0 0.3rem;
+  font-size: 1.1rem;
+  font-weight: 620;
+  letter-spacing: -0.015em;
+}
+ 
+.dialog-note {
+  margin: 0 0 1.25rem;
+  font-size: 0.84rem;
+  color: var(--ink-soft);
+}
+ 
+.dialog label {
+  display: block;
+  margin: 0.9rem 0 0.3rem;
+  font-size: 0.8rem;
+  font-weight: 560;
+  color: var(--ink-soft);
+}
+ 
+.dialog select,
+.dialog input,
+.dialog textarea {
+  width: 100%;
+  font: inherit;
+  font-size: 0.9rem;
+  color: var(--ink);
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  padding: 0.45rem 0.6rem;
+  resize: vertical;
+}
+ 
+.dialog input:focus-visible,
+.dialog select:focus-visible,
+.dialog textarea:focus-visible {
+  outline: 2px solid var(--clinical);
+  outline-offset: 1px;
+}
+ 
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.6rem;
+  margin-top: 1.5rem;
+}
+ 
+/* ---------------------------------------------------------------- notices
+   A stale write is not a dead end: the current state is shown and the
+   question is asked again. */
+ 
+.error {
+  margin: 1rem 0 0;
+  padding: 0.6rem 0.75rem;
+  font-size: 0.85rem;
+  color: var(--danger);
+  background: var(--cancelled-bg);
+  border-radius: var(--radius);
+}
+ 
+.conflict {
+  margin: 1.25rem 0 0;
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--pending);
+  border-radius: var(--radius);
+  background: var(--pending-bg);
+}
+ 
+.conflict p { margin: 0 0 0.85rem; font-size: 0.88rem; color: var(--ink); }
+.conflict .conflict-actions { display: flex; gap: 0.6rem; flex-wrap: wrap; }
+ 
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 1.5rem;
+  transform: translateX(-50%);
+  padding: 0.6rem 1.1rem;
+  font-size: 0.86rem;
+  color: var(--surface);
+  background: var(--ink);
+  border-radius: var(--radius);
+  box-shadow: 0 6px 20px rgb(10 18 28 / 0.2);
+}
+ 
+@media (max-width: 34rem) {
+  .row { grid-template-columns: 1fr auto; }
+  .row-when { grid-column: 1 / -1; }
+  .facts { grid-template-columns: 1fr; gap: 0.15rem 0; }
+  .facts dd { margin-bottom: 0.6rem; }
+}
+ 
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+}
