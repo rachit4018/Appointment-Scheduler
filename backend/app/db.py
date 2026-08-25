@@ -1,4 +1,5 @@
 import os
+import sys
 from collections.abc import AsyncGenerator
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.pool import NullPool
@@ -11,7 +12,7 @@ DATABASE_URL = os.getenv("DATABASE_URL", "postgresql+asyncpg://rachit4018:portal
 # opens and closes per use, which costs nothing at test volumes.
 
 
-_TESTING = os.getenv("PYTEST_CURRENT_TEST") is not None or os.getenv("TESTING") == 1
+_TESTING = "pytest" in sys.modules or os.getenv("TESTING") == "1"
 
 
 engine = create_async_engine(

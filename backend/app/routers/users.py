@@ -11,13 +11,13 @@ from fastapi import APIRouter, Depends
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
  
-from app.db import get_session
+from app.db import get_db
 from app.models import Role, User
 from app.schemas import UserOut
  
 router = APIRouter(prefix="/api", tags=["users"])
  
-Session = Annotated[AsyncSession, Depends(get_session)]
+Session = Annotated[AsyncSession, Depends(get_db)]
  
  
 @router.get("/users", response_model=list[UserOut])

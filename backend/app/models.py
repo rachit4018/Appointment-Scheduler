@@ -25,7 +25,7 @@ class AppointmentType(str,enum.Enum):
 
 class HistoryAction(str,enum.Enum):
     created = "created"
-    updated = "updated"
+    confirmed = "confirmed"
     rescheduled = "rescheduled"
     cancelled = "cancelled"
 
@@ -151,14 +151,14 @@ class AppointmentHistory(Base):
     __tablename__ = "appointment_history"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    appointment_id: Mapped[int] = mapped_column(ForeignKey("appointments.id",on_delete="CASCADE"), nullable=False,index=True)
+    appointment_id: Mapped[int] = mapped_column(ForeignKey("appointments.id",ondelete="CASCADE"), nullable=False,index=True)
 
     # Who did it. Comes straight from get_current_user, so it costs nothing.
     actor_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
     action: Mapped[HistoryAction] = mapped_column(
         Enum(HistoryAction, name="history_action"), nullable=False
     )
-    field_changed: Mapped[str | None] = mapped_column(String(40), nullable=False)
+    field_changed: Mapped[str] = mapped_column(String(40), nullable=False)
     old_value: Mapped[str | None] = mapped_column(String(64))
     new_value: Mapped[str] = mapped_column(String(64), nullable=False)
     created_at: Mapped[datetime] = mapped_column(

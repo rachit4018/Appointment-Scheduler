@@ -29,6 +29,6 @@ services:
       - ./backend:/code
 
 volumes:
-  pgdata:
+  db_data:
 
   
