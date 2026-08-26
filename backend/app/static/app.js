@@ -394,23 +394,29 @@ function wireActions(a) {
  
 function openReschedule(a) {
   const dialog = document.getElementById("reschedule-dialog");
-  const input = document.getElementById("r-when");
+  const dateInput = document.getElementById("r-date");
+  const timeSelect = document.getElementById("r-time");
   const errEl = document.getElementById("reschedule-error");
- 
-  // datetime-local wants a local wall-clock string, so shift the UTC
-  // instant by the browser's offset before slicing.
+
+  timeSelect.innerHTML = timeSlotOptions();
+  dateInput.min = new Date().toISOString().slice(0, 10);
+
+  // Prefill from the appointment's current local date/time, snapping the
+  // time down to the nearest 15-minute slot the dropdown actually offers.
   const local = new Date(a.starts_at);
-  const shifted = new Date(local.getTime() - local.getTimezoneOffset() * 60000);
-  input.value = shifted.toISOString().slice(0, 16);
- 
+  const pad = (n) => String(n).padStart(2, "0");
+  dateInput.value = `${local.getFullYear()}-${pad(local.getMonth() + 1)}-${pad(local.getDate())}`;
+  const snapped = `${pad(local.getHours())}:${pad(Math.floor(local.getMinutes() / 15) * 15)}`;
+  timeSelect.value = timeSelect.querySelector(`option[value="${snapped}"]`) ? snapped : "09:00";
+
   errEl.hidden = true;
   dialog.showModal();
- 
+
   document.getElementById("reschedule-cancel").onclick = () => dialog.close();
   document.getElementById("reschedule-submit").onclick = async () => {
     try {
       await api.patch(`/api/appointments/${a.id}/reschedule`, {
-        starts_at: new Date(input.value).toISOString(),
+        starts_at: new Date(`${dateInput.value}T${timeSelect.value}`).toISOString(),
         expected_version: a.version,
       });
       dialog.close();
