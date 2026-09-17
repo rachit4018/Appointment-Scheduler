@@ -1,13 +1,14 @@
 import os
+import uuid
 from collections.abc import AsyncGenerator
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.pool import NullPool
-import uuid
+
 DATABASE_URL = os.getenv("DATABASE_URL", "postgresql+asyncpg://rachit4018:password@localhost:5432/portal")
 
 
-# A custom generator that prevents asyncpg naming collisions
-def unique_statement_name(stmt):
+def unique_statement_name() -> str:
+    """Called with no args by the asyncpg dialect on every prepare()."""
     return f"__asyncpg_{uuid.uuid4().hex}__"
 
 # NullPool unconditionally: pytest-asyncio gives each test a fresh event
