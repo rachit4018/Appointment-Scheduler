@@ -20,7 +20,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.db import get_db
 from app.models import Role, User
 
-async def get_current_user(
+async def get_current_user( 
         session: Annotated[AsyncSession, Depends(get_db)],
         x_user_id: Annotated[int | None, Header()]=None,
         user_id: Annotated[int|None, Cookie()]= None,

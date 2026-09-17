@@ -19,6 +19,11 @@ engine = create_async_engine(
     DATABASE_URL,
     echo=False,
     pool_pre_ping=True,
+    # Supabase's connection pooler runs PgBouncer in transaction mode, which
+    # is incompatible with asyncpg's server-side prepared statement cache.
+    # Disabling it is a no-op against a direct (non-pooled) connection, so
+    # this is safe regardless of which Supabase connection string is used.
+    connect_args={"statement_cache_size": 0},
     **({"poolclass": NullPool} if _TESTING else {}),
 )
 

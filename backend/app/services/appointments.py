@@ -89,7 +89,7 @@ def _record(
 def _stale(current: Appointment) -> HTTPException:
     """409 for a write against a version the client no longer has.
 
-    The body carries the current row so the client can re-render and re-ask
+    The response body carries the current row so the client can re-render and re-ask
     rather than just showing a dead end.
     """
     return HTTPException(
@@ -114,7 +114,7 @@ async def _load(session: AsyncSession, appointment_id: int) -> Appointment:
     return appt
 
 
-def _assert_participant(appt: Appointment, user: User) -> None:
+def _assert_participant(appt: Appointment, user: User) -> None:  # checks the user is either the patient or provider for the appointment
     """Ownership is enforced here, not by hiding buttons.
 
     Flipping the role switcher to a provider and calling confirm on someone
@@ -168,8 +168,8 @@ def _slot_taken(other: Appointment) -> HTTPException:
 # reads
 # --------------------------------------------------------------------------
 
-
-async def list_for(session: AsyncSession, user: User) -> list[Appointment]:
+ # used in get list api
+async def list_for(session: AsyncSession, user: User) -> list[Appointment]: # get requests for appointments for a user, either patient or provider
     """Scoped by role: a patient sees theirs, a provider sees theirs.
 
     Cancelled appointments are included rather than hidden, so cancelling
@@ -186,7 +186,8 @@ async def list_for(session: AsyncSession, user: User) -> list[Appointment]:
     return list((await session.execute(stmt)).unique().scalars().all())
 
 
-async def get_for(session: AsyncSession, appointment_id: int, user: User) -> Appointment:
+# used in get specific appointment api
+async def get_for(session: AsyncSession, appointment_id: int, user: User) -> Appointment: # get a specific appointment for a user, either patient or provider
     appt = await _load(session, appointment_id)
     _assert_participant(appt, user)
     return appt
@@ -196,7 +197,7 @@ async def get_for(session: AsyncSession, appointment_id: int, user: User) -> App
 # writes
 # --------------------------------------------------------------------------
 
-
+# checks the provider exist and is a provider -> creates a new appointment with pending status -> records history -> commits transaction
 async def create(
     session: AsyncSession,
     *,
@@ -252,7 +253,7 @@ async def create(
     await session.refresh(appt)
     return appt
 
-
+# flow - gets appointment -> checks if user is provider and appointment is pending -> checks for overlap -> updates appointment to confirmed and increments version -> records history -> commits transaction
 async def confirm(
     session: AsyncSession,
     *,
@@ -297,7 +298,7 @@ async def confirm(
             update(Appointment)
             .where(
                 Appointment.id == appointment_id,
-                Appointment.version == expected_version,
+                Appointment.version == expected_version,  # problem 1: lost race with another write
                 Appointment.status == AppointmentStatus.pending,
             )
             .values(
@@ -342,6 +343,8 @@ async def confirm(
     return appt
 
 
+
+# checks the patient exist -> 
 async def cancel(
     session: AsyncSession,
     *,
@@ -372,7 +375,7 @@ async def cancel(
         update(Appointment)
         .where(
             Appointment.id == appointment_id,
-            Appointment.version == expected_version,
+            Appointment.version == expected_version, #problem 1: lost race with another write
             Appointment.status == AppointmentStatus.confirmed,
         )
         .values(
@@ -401,6 +404,7 @@ async def cancel(
     return appt
 
 
+# checks the provider exist -> starts_at is converted to UTC -> ends_at is calculated based on appointment type -> checks if user is provider and appointment is not cancelled -> checks for overlap if appointment is confirmed -> updates appointment with new starts_at and ends_at and increments version -> records history -> commits transaction
 async def reschedule(
     session: AsyncSession,
     *,
@@ -443,7 +447,7 @@ async def reschedule(
             update(Appointment)
             .where(
                 Appointment.id == appointment_id,
-                Appointment.version == expected_version,
+                Appointment.version == expected_version, # problem 1: lost race with another write
             )
             .values(
                 starts_at=starts_at,

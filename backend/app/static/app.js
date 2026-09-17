@@ -12,7 +12,7 @@
  
 const api = {
   async call(method, path, body) {
-    const res = await fetch(path, {
+    const res = await fetch(path  , {
       method,
       headers: body ? { "Content-Type": "application/json" } : {},
       body: body ? JSON.stringify(body) : undefined,

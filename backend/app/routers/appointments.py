@@ -68,7 +68,10 @@ async def confirm_appointment(
         provider=provider,
         expected_version=payload.expected_version,
     )
- 
+
+    # can we put the select query to double check if the appointment is confirmed before sending the email?
+
+    
     # Scheduled only after the confirm has committed. BackgroundTasks runs
     # after the response is sent, and dispatch() swallows anything the
     # sender raises, so the notification can neither delay nor fail the
