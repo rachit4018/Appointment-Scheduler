@@ -21,7 +21,14 @@ engine = create_async_engine(
     echo=False,
     pool_pre_ping=True,
     poolclass=NullPool,
-    connect_args={"statement_cache_size": 0},
+    # Two separate caches need disabling against PgBouncer's transaction
+    # pooling: asyncpg's own (statement_cache_size) and the asyncpg
+    # SQLAlchemy dialect's independent one on top of it
+    # (prepared_statement_cache_size). Leaving either on means named
+    # prepared statements get reused across what PgBouncer treats as
+    # different backend connections, which is what raised "prepared
+    # statement ... already exists".
+    connect_args={"statement_cache_size": 0, "prepared_statement_cache_size": 0},
 )
 
 
