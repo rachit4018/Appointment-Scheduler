@@ -2,8 +2,13 @@ import os
 from collections.abc import AsyncGenerator
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.pool import NullPool
-
+import uuid
 DATABASE_URL = os.getenv("DATABASE_URL", "postgresql+asyncpg://rachit4018:password@localhost:5432/portal")
+
+
+# A custom generator that prevents asyncpg naming collisions
+def unique_statement_name(stmt):
+    return f"__asyncpg_{uuid.uuid4().hex}__"
 
 # NullPool unconditionally: pytest-asyncio gives each test a fresh event
 # loop, and a pooled asyncpg connection stays bound to the loop that opened
@@ -21,9 +26,11 @@ engine = create_async_engine(
     echo=False,
     pool_pre_ping=True,
     poolclass=NullPool,
-    connect_args={"statement_cache_size": 0},
-    pool_size=5,       # Adjust based on serverless scale
-    max_overflow=10,
+    connect_args={
+        "statement_cache_size": 0,           # Disables user query statement caching
+        "prepared_statement_cache_size": 0,  # Disables underlying asyncpg caching
+        "prepared_statement_name_func": unique_statement_name, # Forces unique internal naming
+    }
 )
 
 
