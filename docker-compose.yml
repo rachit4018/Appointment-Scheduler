@@ -22,7 +22,7 @@ services:
       db:
         condition: service_healthy
     environment:
-      DATABASE_URL: postgresql+asyncpg://rachit4018:portal@db:5432/portal
+      DATABASE_URL: postgresql+psycopg://rachit4018:portal@db:5432/portal
     ports:
       - "8000:8000"
     volumes:

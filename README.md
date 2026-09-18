@@ -34,7 +34,7 @@ cd backend
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 
-export DATABASE_URL="postgresql+asyncpg://rachit4018:portal@localhost:5432/portal"
+export DATABASE_URL="postgresql+psycopg://rachit4018:portal@localhost:5432/portal"
 alembic upgrade head
 uvicorn app.main:app --reload
 ```
@@ -51,8 +51,8 @@ would test something other than what ships.
 ```bash
 docker compose up -d db
 cd backend
-DATABASE_URL="postgresql+asyncpg://rachit4018:portal@localhost:5432/portal" python -m app.seed
-DATABASE_URL="postgresql+asyncpg://rachit4018:portal@localhost:5432/portal" pytest -v
+DATABASE_URL="postgresql+psycopg://rachit4018:portal@localhost:5432/portal" python -m app.seed
+DATABASE_URL="postgresql+psycopg://rachit4018:portal@localhost:5432/portal" pytest -v
 ```
 
 ## Demo users

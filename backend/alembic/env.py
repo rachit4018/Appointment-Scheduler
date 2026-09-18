@@ -14,11 +14,11 @@ target_metadata = Base.metadata
  
  
 def _sync_url() -> str:
-    """Alembic runs synchronously; strip the asyncpg driver from the URL."""
-    url = os.getenv(
-        "DATABASE_URL", "postgresql+asyncpg://portal:portal@localhost:5432/portal"
+    """psycopg (v3) works for both sync and async engines under the same
+    +psycopg URL, unlike asyncpg/psycopg2 which needed separate drivers."""
+    return os.getenv(
+        "DATABASE_URL", "postgresql+psycopg://portal:portal@localhost:5432/portal"
     )
-    return url.replace("+asyncpg", "")
  
  
 def run_migrations_offline() -> None:

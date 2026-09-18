@@ -5,7 +5,7 @@ database constraint. Testing it against SQLite or a mock would test something
 other than what actually ships.
  
     docker compose up -d db
-    cd backend && DATABASE_URL=postgresql+asyncpg://portal:portal@localhost:5432/portal \
+    cd backend && DATABASE_URL=postgresql+psycopg://portal:portal@localhost:5432/portal \
         pytest -v
 """
  

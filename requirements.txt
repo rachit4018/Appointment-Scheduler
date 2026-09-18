@@ -1,11 +1,11 @@
 # Runtime dependencies for the Vercel serverless deployment (api/index.py).
 # Mirrors backend/requirements.txt minus dev/test/migration-only packages
-# (pytest, pytest-asyncio, httpx, psycopg2-binary, alembic, uvicorn) that
-# the serverless function doesn't need. Keep in sync manually when
-# backend/requirements.txt's runtime deps change.
+# (pytest, pytest-asyncio, httpx, alembic, uvicorn) that the serverless
+# function doesn't need. Keep in sync manually when backend/requirements.txt's
+# runtime deps change.
 fastapi==0.115.6
 sqlalchemy[asyncio]==2.0.36
-asyncpg==0.30.0
+psycopg[binary]==3.3.5
 pydantic==2.10.4
 jinja2==3.1.5
 python-multipart==0.0.20
